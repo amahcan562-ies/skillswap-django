@@ -4,9 +4,9 @@
 
 ![SkillSwap Logo](./core/static/imgs/sadcat.gif)
 
-**A collaborative platform for exchanging skills and knowledge**
+**Una plataforma colaborativa para intercambiar habilidades y conocimiento.**
 
-[Features](#features) • [Tech Stack](#tech-stack) • [Installation](#installation) • [Workflow](#workflow) • [License](#license)
+[Funcionalidades](#features) • [Pila tecnológica](#tech-stack) • [Instalación](#installation) • [Flujo](#workflow) • [License](#license)
 
 </div>
 
@@ -14,32 +14,62 @@
 
 ## 📋 Table of Contents
 
-- [About](#about)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Workflow](#workflow)
+- [Acerca de](#about)
+- [Funcionalidades](#features)
+- [Pila tecnológica](#tech-stack)
+- [Instalación](#installation)
+- [Configuración](#configuration)
+- [Uso](#usage)
+- [Estructura del proyecto](#project-structure)
+- [Flujo](#workflow)
 - [Contributing](#contributing)
 - [Team](#team)
 - [License](#license)
 
 ---
 
-## 🎯 About
+## 🎯 Acerca de
 
-**SkillSwap** is a web application that allows users to exchange skills and knowledge with other members of the community. Whether you want to learn a new skill or teach something you know, SkillSwap connects people with shared interests and complementary abilities.
+**SkillSwap** es una aplicación web que permite a los usuarios intercambiar habilidades y conocimientos con otros miembros de la comunidad. Ya sea que quieras aprender una nueva habilidad o enseñar algo que sabes, SkillSwap conecta personas con intereses compartidos y habilidades complementarias.
 
-The platform enables users to:
-- Create posts offering or requesting specific skills
-- Search and filter available skills and users
-- Manage their user profile with preferences and interests
-- Maintain persistent search filters and preferences across sessions
-- Enjoy a seamless experience in both light and dark themes
+La plataforma permite a los usuarios:
+- Crear publicaciones ofreciendo o solicitando habilidades específicas
+- Buscar y filtrar habilidades y usuarios disponibles
+- Gestionar el perfil del usuario con preferencias e intereses
+- Mantener preferencias de búsqueda y filtros persistentes a través de cookies y sesiones
+- Disfrutar de una experiencia perfecta en temas claros y oscuros
 
-This project was developed as part of an educational course focusing on professional web development practices including version control, collaborative workflows, and full-stack development with Django.
+### 👥 Contribuciones del Equipo
+
+Este proyecto fue desarrollado colaborativamente con clara separación de roles:
+
+**Capa de Datos y ORM** (*jherhum1702*)
+- Modelos de base de datos y relaciones con restricciones apropiadas
+- Consultas ORM avanzadas usando objetos Q, expresiones F, anotaciones y agregaciones
+- Optimización de consultas con `select_related()` y `prefetch_related()`
+- Migraciones de base de datos y diseño de esquema
+- Población de datos de prueba y fixtures
+
+**Flujos y Seguridad** (*fdomcas*)
+- Modelo de usuario personalizado con funcionalidad extendida
+- Grupos de usuarios, permisos y reglas de control de acceso
+- Flujo completo de publicación (creación, modificación, gestión de estado)
+- Seguimiento de acuerdos y sistema de seguimiento
+- Validación de formularios y medidas de seguridad
+- Protección contra XSS y defensa CSRF
+
+**Infraestructura y Documentación** (*amahcan562-ies*)
+- Containerización con Docker y orquestación docker-compose
+- Configuración y gestión de base de datos PostgreSQL
+- Configuración de variables de entorno y gestión de secretos
+- Preferencias de usuario basadas en cookies (tema, idioma)
+- Persistencia de estado basada en sesiones (filtros de búsqueda)
+- Implementación de middleware anti-spam
+- Documentación completa del proyecto y README
+
+---
+
+Este proyecto fue desarrollado como parte de un curso educativo enfocado en prácticas profesionales de desarrollo web incluyendo control de versiones, flujos de trabajo colaborativos, diseño de bases de datos, seguridad y desarrollo full-stack con Django.
 
 ---
 
@@ -303,21 +333,26 @@ skillswap-django/
 
 ## ⚙️ Configuration
 
-### Context Processors
-The `core/context_processors.py` provides global template context:
-- **theme**: Current theme preference (light/dark) from cookies
-- **lang**: Current language preference (ES/EN) from cookies
+### Environment Variables
+The `.env` file controls all environment-dependent settings:
 
-### Session Management
-The `core/session_manager.py` handles:
-- Saving and retrieving search filters from Django sessions
-- Clearing filters when navigating away from search
-- Persistent search state across browser sessions
+| Variable | Purpose | Example |
+|----------|---------|---------|
+| `DB_NAME` | PostgreSQL database name | `skillswap_db` |
+| `DB_USER` | PostgreSQL user | `django_user` |
+| `DB_PASSWORD` | PostgreSQL password | `secure_password` |
+| `DB_HOST` | Database host (localhost or Docker service) | `localhost` or `db` |
+| `DEBUG` | Django debug mode | `True` (development only) |
+| `SECRET_KEY` | Django secret key (keep secure!) | Generated value |
+| `ALLOWED_HOSTS` | Allowed host domains | `localhost,127.0.0.1` |
+| `CSRF_TRUSTED_ORIGINS` | CSRF-safe origins (must have scheme) | `http://localhost:8000` |
+| `TUNNEL_TOKEN` | Cloudflare Tunnel token (optional) | Your token |
 
-### Middleware
-- **SpamMiddleware**: Protects against spam attacks by rate limiting requests
-- **WhiteNoiseMiddleware**: Serves static files efficiently
-- **SessionMiddleware**: Manages user sessions
+### Key Settings Files
+- **`skillswap/settings.py`**: Main Django configuration
+- **`skillswap/urls.py`**: Project-level URL routing
+- **`core/urls.py`**: App-level URL routing and views
+- **`.env.example`**: Template for environment variables (copy and customize)
 
 ---
 
@@ -362,206 +397,169 @@ After running `populate_test_data`:
 
 ## 📊 Workflow
 
-### Git Strategy: Git Flow with GitHub
+### Git Strategy Implementation
 
-Our team follows a **modified Git Flow** model combined with **GitHub's collaborative features** for professional coordination:
+Our team implemented a **Git Flow workflow** with GitHub collaboration, organizing work through branches, issues, and pull requests.
 
-#### Branch Structure
+---
 
+### 1. Branches Used and Integration
+
+#### Main Branches
+- **`main`**: Production-ready code
+- **`develop`**: Integration branch for features (staging)
+
+#### Work Branches
+All work was done in dedicated branches created from `develop`:
+
+**Features Implemented:**
+| Branch | Feature | Contributors | Status |
+|--------|---------|---------------|--------|
+| `feature/cookies` | Light/Dark theme & Language preferences (cookies) | amahcan562-ies | ✅ Merged (PR #51) |
+| `feature/post_list` | Post listing and display | fdomcas | ✅ Merged (PR #50) |
+| `feature/populate_db` | Database population script | jherhum1702 | ✅ Merged (PR #41) |
+| `feature/home-page` | Home page with search | jherhum1702 | ✅ Merged (PR #53) |
+| `feature/Perfil_usuario` | User profile management | fdomcas | ✅ Merged (PR #56, then reverted & re-implemented #61) |
+| `feature/sessions` | Session-based filter persistence | amahcan562-ies | ✅ Merged |
+
+**Bugfixes:**
+| Branch | Bug Fixed | Contributors | Status |
+|--------|-----------|---------------|--------|
+| `bugfix/urls` | URL routing issues | fdomcas | ✅ Merged (PR #59) |
+| `bugfix/profile-base` | Profile base template fixes | jherhum1702 | ✅ Merged (PR #62) |
+| `bugfix/docker-expose-port` | Docker port exposure (8000:8000) | In progress | 🔄 Feature branch |
+| `bugfix/responsive-buttons-bug` | Mobile responsive button alignment | In progress | 🔄 Feature branch |
+
+#### Integration Process
+1. Each feature/bugfix created a branch from `develop`
+2. Work completed locally with multiple commits
+3. Push to personal fork
+4. Create Pull Request to upstream `develop` branch
+5. After approval → merge into `develop`
+6. Delete feature branch after merge
+7. `develop` branch regularly synced with forks
+
+---
+
+### 2. Issues and Task Distribution
+
+**How Issues Were Organized:**
+
+We used GitHub Issues to track work with these types:
+- **Feature Requests**: New functionality to build
+- **Bug Reports**: Issues to fix
+- **Documentation**: README and docs updates
+
+**Task Distribution:**
+| Team Member | Primary Responsibilities | Features/Bugfixes |
+|-------------|--------------------------|-------------------|
+| **jherhum1702** | Project Lead, Backend architecture, Models, Views | Populate DB, Home page, Profile base fixes, More data |
+| **amahcan562-ies** | Full Stack: Frontend styling, Cookies, Sessions | Cookies/Theme/Lang, Session filters, Responsive buttons |
+| **fdomcas** | Frontend & Database features | Post list, User profile, URL bugfixes |
+
+**Work Distribution Method:**
+- Issues were created in the GitHub repository
+- Assigned to team members based on expertise
+- Linked to Pull Requests with "Closes #X" comments
+- Progress tracked through PR comments and status updates
+
+---
+
+### 3. Code Review Process
+
+**Pull Request Review Checklist:**
+
+Before merging, each PR was reviewed for:
+- ✅ **Django Best Practices**: Models, views, forms follow conventions
+- ✅ **Database Migrations**: No errors, migrations apply successfully
+- ✅ **Template Safety**: No XSS vulnerabilities, proper template usage
+- ✅ **Code Quality**: Meaningful variable names, documentation
+- ✅ **Functionality**: Feature works as described in PR
+- ✅ **No Breaking Changes**: Backward compatibility maintained
+
+**Review Workflow:**
+1. Author creates PR with description, key changes, and testing checklist
+2. Team members review code and suggest improvements
+3. Author addresses feedback with additional commits
+4. Approvers verify changes and approve
+5. PR is merged to develop once approved
+
+**Example PR (Feature/Cookies):**
 ```
-main (production)
-└── develop (staging)
-    ├── feature/feature-name
-    ├── bugfix/bug-name
-    └── hotfix/critical-issue
+Title: feat(cookies): Dark mode and language preferences
+Description: Implemented cookie-based theme and language preferences
+Key Changes:
+- Added context_processors.py for template variables
+- Created theme toggle and language toggle buttons
+- Implemented CSS for dark mode
+Testing: Migrations apply without errors, theme persists across sessions
+Related Issues: Closes #X
 ```
 
-**Branch Naming Conventions:**
-- `feature/description` - New features
-- `bugfix/description` - Bug fixes
-- `hotfix/critical-issue` - Critical production fixes
-- Examples: `feature/cookies`, `bugfix/docker-expose-port`, `feature/sessions`
+---
 
-#### Workflow Steps
+### 4. Conflict Resolution
 
-##### 1. **Create a Feature/Bugfix Branch**
+**Conflicts Encountered and Resolution:**
 
+#### Conflict #1: Feature/Perfil_usuario
+- **Issue**: Profile feature merged, then reverted due to bugs, then re-implemented
+- **Solution**: 
+  - First merge (PR #56) → Reverted (PR #58)
+  - Fixed conflicts by rebasing with develop
+  - Re-implemented with fixes (PR #61) → Successfully merged
+- **Lesson**: Better testing before merging
+
+#### Conflict #2: Feature/Sessions vs Bugfix/buttons
+- **Issue**: Two branches modifying button styling simultaneously
+- **Solution**:
+  - Used `git rebase upstream/develop` to sync latest changes
+  - Manually resolved CSS conflicts in templates
+  - Tested responsive design thoroughly
+- **Prevention**: Improved communication about which files each person modifies
+
+#### Resolution Strategy Used:
 ```bash
-# Update develop branch
-git checkout develop
-git pull upstream develop
-
-# Create feature branch from develop
-git checkout -b feature/your-feature-name
-
-# Or from your fork
-git checkout -b feature/your-feature-name origin/develop
+# When conflicts occurred:
+1. git fetch upstream
+2. git rebase upstream/develop
+3. # Resolve conflicts manually in editor
+4. git add .
+5. git rebase --continue
+6. git push origin branch-name -f
 ```
 
-##### 2. **Develop and Commit**
+**Conflict Markers Handled:**
+- Template conflicts in `base.html`
+- CSS styling conflicts in buttons
+- URL routing conflicts in `urls.py`
 
-```bash
-# Make your changes
-git add .
-git commit -m "feat: description of your changes"
+**Prevention Measures:**
+- Team communicated about areas being modified
+- Small, focused branches to minimize overlap
+- Frequent pulls from upstream develop
+- Regular merges to avoid large divergences
 
-# Follow conventional commits:
-# feat: new feature
-# fix: bug fix
-# docs: documentation
-# style: formatting
-# refactor: code restructuring
-# test: adding tests
+---
+
+### 5. Communication & Coordination
+
+**Tools Used:**
+- **GitHub Issues**: Feature/bug tracking and assignment
+- **Pull Requests**: Code review and discussion
+- **Commits**: Descriptive messages following conventional commits
+  - `feat:` for features
+  - `fix:` for bugfixes
+  - `docs:` for documentation
+  - `style:` for formatting
+
+**Example Commits:**
 ```
-
-##### 3. **Push to Your Fork**
-
-```bash
-# Push to your fork
-git push origin feature/your-feature-name
+- feat: context-processors implementation
+- fix(docker): deleted double ports
+- feat: filter session implemented
+- fix: buttons separated and names in dark mode now appear
 ```
-
-##### 4. **Create a Pull Request**
-
-- Go to **GitHub repository** → **Pull Requests** → **New PR**
-- **Base**: `jherhum1702/skillswap-django` `develop`
-- **Compare**: `your-fork/skillswap-django` `feature/your-feature-name`
-- **Fill PR template** with:
-  - Description of changes
-  - Key changes (bullet points)
-  - Testing checklist
-  - Related issues
-  - Screenshots if applicable
-
-**PR Template:**
-```markdown
-## Description
-Brief explanation of what this PR does
-
-## Key changes
-- Changed X
-- Added Y
-- Fixed Z
-
-## Testing checklist
-- [ ] Migrations apply without errors
-- [ ] Feature works as expected
-- [ ] No breaking changes
-
-## Related issues
-Closes #(ISSUE NUMBER)
-```
-
-##### 5. **Code Review**
-
-- Team members review the PR
-- Discuss changes in PR comments
-- Request changes if needed
-- Approve when ready
-
-**Code Review Focus:**
-- Django best practices
-- Database migrations validity
-- Template safety
-- No hard-coded values
-- Meaningful commit messages
-
-##### 6. **Merge to Develop**
-
-```bash
-# After approval, merge is done through GitHub
-# Usually "Squash and merge" or "Create a merge commit"
-```
-
-##### 7. **Sync Your Fork**
-
-```bash
-# After merge, sync your fork
-git checkout develop
-git pull upstream develop
-git push origin develop
-```
-
-##### 8. **Delete Feature Branch**
-
-```bash
-# Delete local branch
-git branch -d feature/your-feature-name
-
-# Delete remote branch
-git push origin --delete feature/your-feature-name
-```
-
-#### Issues Management
-
-**How we use GitHub Issues:**
-
-1. **Feature Requests**: Use "Feature request" template
-   - Describe the desired functionality
-   - Priority: Low/Medium/High
-   - Assigned to team member
-
-2. **Bug Reports**: Use "Bug report" template
-   - Problem statement
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Assign to team member
-
-3. **Labeling System**:
-   - `enhancement` - New features
-   - `bug` - Bug fixes needed
-   - `documentation` - Docs improvements
-   - `high`, `medium`, `low` - Priority levels
-   - `in-progress` - Currently being worked on
-   - `review` - Waiting for code review
-
-**Workflow Example:**
-```
-Issue #45: "Add dark mode support"
-  ↓
-Create branch: feature/cookies
-  ↓
-Implement feature
-  ↓
-Create PR linked to issue
-  ↓
-Code review
-  ↓
-Merge to develop
-  ↓
-Close issue
-```
-
-#### Conflict Resolution
-
-**When conflicts occur:**
-
-```bash
-# Update your branch with latest develop
-git fetch upstream
-git rebase upstream/develop
-
-# Resolve conflicts manually in your editor
-# Look for: <<<<<<, ======, >>>>>> markers
-
-# After resolving
-git add .
-git rebase --continue
-git push origin feature/your-feature-name -f
-```
-
-**Conflict Prevention:**
-- Pull latest changes before starting work
-- Keep branches focused and short-lived
-- Communicate with team about large changes
-- Rebase frequently with develop
-
-#### Communication
-
-- **Pull Request Comments**: Discuss specific changes
-- **Issues**: Track bugs and features
-- **GitHub Discussions**: General questions (if enabled)
-- **In-person**: Complex decisions or blockers
 
 ---
 
@@ -599,20 +597,6 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Here's how to get started:
-
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/AmazingFeature`)
-3. **Commit changes** (`git commit -m 'feat: Add AmazingFeature'`)
-4. **Push to branch** (`git push origin feature/AmazingFeature`)
-5. **Open a Pull Request** with detailed description
-6. **Wait for review and approval**
-
-Please ensure your code follows our conventions and includes appropriate documentation.
-
----
 
 ## 📚 Additional Resources
 
