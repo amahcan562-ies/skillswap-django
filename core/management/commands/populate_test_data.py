@@ -1,7 +1,7 @@
 from django.core.management import BaseCommand
 from core.models import Habilidad, Perfil, Publicacion, Acuerdo, Sesion
 from django.contrib.auth import get_user_model
-from datetime import date, timedelta
+from datetime import date, timedelta, time
 
 
 class Command(BaseCommand):
@@ -359,7 +359,6 @@ class Command(BaseCommand):
         acuerdos = []
         for (username_a, username_b, semanas, mins, sesiones_semana, estado, condiciones, habilidad_a, habilidad_b, descripcion_pub) in acuerdos_data:
             try:
-                # Resolve the publicacion that originated this agreement
                 publicacion = Publicacion.objects.filter(descripcion=descripcion_pub).first()
 
                 acuerdo, created = Acuerdo.objects.get_or_create(
@@ -424,11 +423,12 @@ class Command(BaseCommand):
                         acuerdo=acuerdo,
                         fecha=date.today() + timedelta(days=dias_offset),
                         defaults={
-                            'duracion_real':    duracion,
-                            'resumen':          resumen,
+                            'hora':              time(10, 0),  # 10:00 por defecto
+                            'duracion_real':     duracion,
+                            'resumen':           resumen,
                             'asistencia_user_a': asistencia_a,
                             'asistencia_user_b': asistencia_b,
-                            'estado':           True,
+                            'estado':            True,
                         }
                     )
                     if created:

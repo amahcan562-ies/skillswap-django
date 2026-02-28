@@ -49,8 +49,9 @@ class ModeradorOAdminMixin(AccessMixin):
         if not user.is_authenticated:
             return self.handle_no_permission()
         if not (user.is_staff or user.groups.filter(name='Moderador').exists()):
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
+            messages.error(request, 'No tienes permisos para acceder a esta página.')
+            return redirect('core:home')
+        return super().dispatch(request,*args, **kwargs)
 
 
 class HomeView(ListView):
