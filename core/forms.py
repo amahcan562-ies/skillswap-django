@@ -431,8 +431,6 @@ class DealsPostUpdate(forms.ModelForm):
     }
 
 
-<<<<<<< HEAD
-=======
 
 
 
@@ -503,4 +501,3 @@ class SesionEditForm(forms.ModelForm):
             'asistencia_user_a': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'asistencia_user_b': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
->>>>>>> 685cc4d (kfix: solved placeholders text not shown in cookie lang)
