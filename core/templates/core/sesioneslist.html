@@ -3,19 +3,11 @@
 {% block title %}{% trans "Sesiones" %}{% endblock %}
 
 {% block content %}
-<<<<<<< HEAD
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0">Mis sesiones</h4>
-  <a href="{{ request.GET.next|default:'/deals/' }}" class="btn btn-outline-secondary">
-    <i class="fas fa-arrow-left me-1"></i>Volver
-  </a>
-=======
-    <a href="javascript:history.back()" class="btn btn-outline-secondary">
+  <h4 class="fw-bold mb-0">{% trans "Mis sesiones" %}</h4>
+  <a href="javascript:history.back()" class="btn btn-outline-secondary">
     <i class="fas fa-arrow-left me-1"></i>{% trans "Volver" %}
   </a>
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0">{% trans "Sesiones" %}</h4>
->>>>>>> 6a3374b (bugfix: add missing i18n translations to all templates)
 </div>
 
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
@@ -24,16 +16,15 @@
     <a href="{% url 'core:session-detail' session.pk %}?next={{ request.get_full_path }}" class="text-decoration-none">
       <div class="card h-100 shadow-sm">
         <div class="card-body d-flex flex-column gap-2">
-<<<<<<< HEAD
 
           <div class="d-flex justify-content-between align-items-center">
             <span class="fw-semibold">{{ session.fecha|date:"d M Y" }}</span>
             {% if session.ha_finalizado == 'upcoming' %}
-              <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Próximamente</span>
+              <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>{% trans "Próximamente" %}</span>
             {% elif session.ha_finalizado == 'ongoing' %}
-              <span class="badge bg-success"><i class="fas fa-circle me-1"></i>En curso</span>
+              <span class="badge bg-success"><i class="fas fa-circle me-1"></i>{% trans "En curso" %}</span>
             {% else %}
-              <span class="badge bg-secondary"><i class="fas fa-check me-1"></i>Finalizada</span>
+              <span class="badge bg-secondary"><i class="fas fa-check me-1"></i>{% trans "Finalizada" %}</span>
             {% endif %}
           </div>
 
@@ -43,26 +34,20 @@
 
           {% if session.ha_finalizado == 'ongoing' and session.meet_link %}
           <a href="{{ session.meet_link }}" target="_blank" class="btn btn-sm btn-success mt-1" onclick="event.stopPropagation()">
-            <i class="fas fa-video me-1"></i>Unirse ahora
+            <i class="fas fa-video me-1"></i>{% trans "Unirse ahora" %}
           </a>
           {% elif session.ha_finalizado == 'upcoming' and session.meet_link %}
           <span class="btn btn-sm btn-outline-secondary mt-1 disabled">
-            <i class="fas fa-video me-1"></i>Aún no ha empezado
+            <i class="fas fa-video me-1"></i>{% trans "Aún no ha empezado" %}
           </span>
           {% endif %}
 
-=======
-          <p class="text-muted mb-0 small">{% trans "Fecha" %}</p>
-          <p class="fw-semibold mb-0">{{ session.fecha|date:"d M Y" }}</p>
-          <p class="text-muted mb-0 small">{% trans "Duración" %}</p>
-          <p class="fw-semibold mb-0">{{ session.duracion_real }}</p>
->>>>>>> 6a3374b (bugfix: add missing i18n translations to all templates)
         </div>
       </div>
     </a>
   </div>
   {% empty %}
-  <p class="text-muted fst-italic">No tienes sesiones aún.</p>
+  <p class="text-muted fst-italic">{% trans "No tienes sesiones aún." %}</p>
   {% endfor %}
 </div>
 
