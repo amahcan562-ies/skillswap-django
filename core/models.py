@@ -6,6 +6,10 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 # Create your models here.
 
 class Habilidad(models.Model):
@@ -30,6 +34,11 @@ class Habilidad(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    class Meta:
+        verbose_name = 'habilidad'
+        verbose_name_plural = 'habilidades'
+        ordering = ['nombre']
 
 class Usuario(AbstractUser):
     """
@@ -60,6 +69,8 @@ class Usuario(AbstractUser):
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email", "first_name", 'last_name']
 
+
+
     def __str__(self):
         """
         Returns the string representation of the user.
@@ -87,7 +98,7 @@ class Usuario(AbstractUser):
         db_table = 'usuario'
         verbose_name = 'usuario'
         verbose_name_plural = 'usuarios'
-        ordering = ['first_name']
+        ordering = ['first_name', 'last_name']
 
 
 def timezone_choices():
@@ -159,6 +170,13 @@ class Perfil(models.Model):
 
     habilidades = models.ManyToManyField(Habilidad, blank=True, related_name='perfil', related_query_name='perfil')
 
+    def __str__(self):
+        return f"Perfil de {self.usuario.username}"
+
+    class Meta:
+        verbose_name = 'perfil'
+        verbose_name_plural = 'perfiles'
+        ordering = ('usuario',)
 
     def clean(self):
         """
@@ -255,11 +273,15 @@ class Publicacion(models.Model):
     habilidad = models.ForeignKey(Habilidad, on_delete=models.CASCADE, related_name='publicaciones', related_query_name='publicacion') # It has no-sense if the post remains when the skill is removed, as you won't be able to SkillSwap.
 
 
-
+    class Meta:
+        verbose_name = 'publicacion'
+        verbose_name_plural = 'publicaciones'
+        ordering = ('-fecha_creacion',)
 
 
     def __str__(self):
-        return self.tipo
+        return f"{self.autor.username} - {self.tipo.capitalize()} - {self.habilidad} "
+
 class Acuerdo(models.Model):
     """
     Model for an agreement in SkillSwap
@@ -332,6 +354,9 @@ class Acuerdo(models.Model):
 
     habilidad_tradea_a = models.ForeignKey(Habilidad, on_delete=models.CASCADE, related_name='acuerdos_a', related_query_name='acuerdos_a') # It has no-sense if the post remains when the skill is removed, as you won't offer/search for a Null skill.
     habilidad_tradea_b = models.ForeignKey(Habilidad, on_delete=models.CASCADE, related_name='acuerdos_b', related_query_name='acuerdos_b') # It has no-sense if the post remains when the skill is removed, as you won't offer/search for a Null skill.
+
+    def __str__(self):
+        return f"{self.usuario_a} da {self.habilidad_tradea_a} <-> {self.usuario_b} da {self.habilidad_tradea_b}"
 
     def clean(self):
         """
@@ -476,6 +501,9 @@ class Sesion(models.Model):
 
     acuerdo = models.ForeignKey(Acuerdo, on_delete=models.CASCADE, related_name='sesiones', related_query_name='sesion')
 
+    def __str__(self):
+        return f"{self.fecha}, {self.acuerdo}"
+
     def clean(self):
         """
         Validates the entire model before saving it.
@@ -531,3 +559,26 @@ class Sesion(models.Model):
         verbose_name_plural = 'sesiones'
         ordering = ('fecha',)
 
+@receiver(post_save, sender=Usuario)
+def crear_perfil_usuario(sender, instance, created, **kwargs):
+    """
+    Create a profile for a new user.
+
+    Automatically creates a Perfil whenever a new Usuario is registered.
+
+    Args:
+        sender (type): The model class that sent the signal (Usuario).
+        instance (Usuario): The actual instance being saved.
+        created (bool): True if a new record was created, False if updated.
+        **kwargs: Additional keyword arguments passed by the signal.
+
+    Example:
+            >>> usuario = Usuario.objects.create(
+            ...     first_name="Paco",
+            ...     username="pacogamer30",
+            ...     email="pacotest@gmail.com"
+            ... )
+            >>> Perfil.objects.get(usuario=usuario)  # Profile created automatically
+    """
+    if created:
+        Perfil.objects.create(usuario=instance)
