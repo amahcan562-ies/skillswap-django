@@ -1,8 +1,13 @@
+from symtable import Class
+from core.forms import SesionCreateForm, SesionEditForm
 from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.models import Group
 from django.contrib.auth import login
 from django.contrib.sessions.models import Session
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q, Count, Case, When, IntegerField, F
 from django.shortcuts import render, redirect
 from django.db import IntegrityError
@@ -14,8 +19,39 @@ from django.views.generic import CreateView, ListView, DetailView, UpdateView, T
 from .forms import *
 from django.views.decorators.http import require_http_methods
 from .session_manager import SessionManager
+from rest_framework import viewsets
+from .serializers import *
+from rest_framework.permissions import IsAdminUser
+from django.core.mail import send_mail
+import random
+from core.services.meet import create_meet_link
 
-# Create your views here.
+
+class AutorOModeradorMixin:
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj.autor != request.user and not request.user.is_staff:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
+class AcuerdoUpdateParticipant:
+    class ParticipanteAcuerdoMixin:
+        def dispatch(self, request, *args, **kwargs):
+            obj = self.get_object()
+            if obj.usuario_a != request.user and obj.usuario_b != request.user:
+                raise PermissionDenied
+            return super().dispatch(request, *args, **kwargs)
+
+class ModeradorOAdminMixin(AccessMixin):
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_authenticated:
+            return self.handle_no_permission()
+        if not (user.is_staff or user.groups.filter(name='Moderador').exists()):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
 
 class HomeView(ListView):
     """
@@ -39,7 +75,7 @@ class HomeView(ListView):
     - ``BUSCO`` or ``OFREZCO`` to filter by post type.
     - Any other term to filter by skill name or description.
 
-    If a query is present, renders ``core/post_list.html``, otherwise ``core/home.html``.
+    If a query is present, renders ``core/search_results.html``, otherwise ``core/home.html``.
 
     Examples
     --------
@@ -55,9 +91,11 @@ class HomeView(ListView):
 
     Search examples::
 
-        /?q=ajedrez         → posts with skill "Ajedrez"
-        /?q=busco ajedrez   → posts of type BUSCO with skill "Ajedrez"
-        /?q=ofrezco python  → posts of type OFREZCO with skill "Python"
+        /?q=ajedrez                              → posts with skill "Ajedrez"
+        /?q=busco ajedrez                        → posts of type BUSCO with skill "Ajedrez"
+        /?q=ofrezco python                       → posts of type OFREZCO with skill "Python"
+        /?q=busco python y ofrezco javascript    → BUSCO python OR OFREZCO javascript
+        /?q=busco python o gaming                → BUSCO python OR BUSCO gaming
     """
     context_object_name = 'posts'
     model = Publicacion
@@ -67,7 +105,6 @@ class HomeView(ListView):
     def get_template_names(self):
         q = self.request.GET.get('q', '').strip()
         if not q:
-            # Check if there are saved filters in session
             filters = SessionManager.get_filters(self.request)
             q = filters.get('q', '')
 
@@ -79,37 +116,45 @@ class HomeView(ListView):
         queryset = super().get_queryset()
         q = self.request.GET.get('q', '').strip()
 
-        # If no search in URL, try to restore from session
         if not q:
             filters = SessionManager.get_filters(self.request)
             q = filters.get('q', '')
         else:
-            # If new search, save to session
             SessionManager.save_filters(self.request, q=q)
 
-        # If no query at all, clear filters
         if not q:
             SessionManager.clear_filters(self.request)
 
         if q:
-            tipo_filter = None
-            search_terms = []
+            busco_terms = []
+            ofrezco_terms = []
+            generic_terms = []
+            current_list = generic_terms
 
-            for word in q.split():
-                word_upper = word.upper()
-                if word_upper in ['BUSCO', 'OFREZCO']:
-                    tipo_filter = word_upper
-                else:
-                    search_terms.append(word)
+            for word in q.lower().split():
+                if word == 'busco':
+                    current_list = busco_terms
+                elif word == 'ofrezco':
+                    current_list = ofrezco_terms
+                elif word not in ('y', 'o'):
+                    current_list.append(word)
 
-            if tipo_filter:
-                queryset = queryset.filter(tipo=tipo_filter)
+            def terms_to_q(terms):
+                result = Q()
+                for t in terms:
+                    result |= Q(habilidad__nombre__icontains=t) | Q(descripcion__icontains=t)
+                return result
 
-            for term in search_terms:
-                queryset = queryset.filter(
-                    Q(habilidad__nombre__icontains=term) |
-                    Q(descripcion__icontains=term)
-                )
+            combined = Q()
+            if busco_terms:
+                combined |= Q(tipo='BUSCO') & terms_to_q(busco_terms)
+            if ofrezco_terms:
+                combined |= Q(tipo='OFREZCO') & terms_to_q(ofrezco_terms)
+            if generic_terms:
+                combined |= terms_to_q(generic_terms)
+
+            if combined:
+                queryset = queryset.filter(combined)
 
         return queryset.distinct().select_related('autor', 'autor__perfil', 'habilidad').prefetch_related('autor__perfil__habilidades')
 
@@ -117,9 +162,9 @@ class HomeView(ListView):
         """
         Add saved filters to the template context.
 
-        Returns the context with filters recovered from session so the template can display the active search filters.
+        Returns the context with filters recovered from session so the template
+        can display the active search filters.
         """
-
         context = super().get_context_data(**kwargs)
         filters = SessionManager.get_filters(self.request)
         context['filters'] = filters
@@ -154,14 +199,13 @@ class Postlistview(ListView):
     template_name = 'core/post_list.html'
     context_object_name = 'posts'
 
-class PostDetailview(DetailView):
+class PostDetailview(LoginRequiredMixin, DetailView):
     model = Publicacion
     template_name = 'core/post_detail.html'
     context_object_name = 'post'
 
     def get_object(self, queryset=None):
-        return Publicacion.objects.annotate(total_proposals=Count('autor__acuerdo_a',filter=Q(autor__acuerdo_a__estado='PROPUESTO'))).get(pk=self.kwargs['pk']) # Need to check if it's USUARIO_A or B
-
+        return Publicacion.objects.annotate(total_proposals=Count('acuerdo', filter=Q(acuerdo__estado='PROPUESTO'))).get(pk=self.kwargs['pk'])
 
 class CustomLogin(LoginView):
     """
@@ -196,6 +240,19 @@ class CustomLogin(LoginView):
     form_class = CustomloginForm
     template_name = 'registration/login.html'
 
+    def form_invalid(self, form):
+        username = form.data.get('username')
+        try:
+            user = Usuario.objects.get(username=username)
+            if not user.is_active:
+                messages.error(self.request, 'Tu cuenta ha sido baneada. Contacta con el administrador.')
+                form.errors.clear()  # <-- Cleans form error
+        except Usuario.DoesNotExist:
+            pass
+        return super().form_invalid(form)
+    def get_success_url(self):
+        return reverse_lazy('core:home')
+
     def get_success_url(self):
         """
         Return the URL to redirect to after successful login.
@@ -216,70 +273,79 @@ class CustomLogin(LoginView):
 
 class CustomRegisterView(CreateView):
     """
-    Custom registration view for the SkillSwap platform.
-
-    Parameters
-    ----------
-    form_class : CustomUserCreationForm
-        Custom form that handles user registration with alias and email validation.
-    template_name : str
-        Path to the template used to render the registration form.
-    success_url : str
-        URL to redirect to after successful registration.
-
-    Methods
-    -------
-    form_valid(form)
-        Saves the user, assigns them to the 'Usuario' group, and logs them in.
-
-    Examples
-    --------
-    URL config::
-
-        path('accounts/register/', CustomRegisterView.as_view(), name='registro'),
-
-    Template usage::
-
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Registrarse</button>
-        </form>
+    Vista de registro: guarda los datos en sesión y envía un código de verificación por email.
+    No crea el usuario hasta que el código sea verificado.
     """
     form_class = CustomUserCreationForm
     template_name = 'registration/registration.html'
-    success_url = reverse_lazy('core:home')
 
     def form_valid(self, form):
-        """
-        Handle valid form submission.
+        self.request.session['registro_pendiente'] = {
+            'username':   form.cleaned_data['username'],
+            'first_name': form.cleaned_data['first_name'],
+            'last_name':  form.cleaned_data['last_name'],
+            'email':      form.cleaned_data['email'],
+            'password':   form.cleaned_data['password1'],
+        }
 
-        Saves the new user, assigns them to the default 'Usuario' group,
-        and automatically logs them in after registration.
+        # Generar código de 6 dígitos y guardarlo en sesión
+        codigo = str(random.randint(100000, 999999))
+        self.request.session['codigo_verificacion'] = codigo
 
-        Parameters
-        ----------
-        form : CustomUserCreationForm
-            The validated registration form instance.
+        send_mail(
+            subject='Verifica tu cuenta en SkillSwap',
+            message=f'Tu código de verificación es: {codigo}\n\nEste código expira cuando cierres el navegador.',
+            from_email=None,
+            recipient_list=[form.cleaned_data['email']],
+        )
 
-        Returns
-        -------
-        HttpResponseRedirect
-            Redirects to success_url after saving and logging in the user.
+        return redirect('core:verificar-email')
 
-        Examples
-        --------
-        >>> view = CustomRegisterView()
-        >>> response = view.form_valid(valid_form)
-        >>> response.status_code
-        302
-        """
-        user = form.save()
-        Perfil.objects.create(usuario=user)
-        user_group, created = Group.objects.get_or_create(name='Usuario')
+    def form_invalid(self, form):
+        return super().form_invalid(form)
+
+
+class VerificarEmailView(View):
+    """
+    Vista para introducir el código de verificación recibido por email.
+    Si el código es correcto, crea el usuario y lo loguea.
+    """
+    template_name = 'registration/verificar_email.html'
+
+    def get(self, request):
+        if 'registro_pendiente' not in request.session:
+            return redirect('core:registro')
+        return render(request, self.template_name)
+
+    def post(self, request):
+        codigo_introducido = request.POST.get('codigo', '').strip()
+        codigo_correcto    = request.session.get('codigo_verificacion')
+        datos              = request.session.get('registro_pendiente')
+
+        if not datos or not codigo_correcto:
+            messages.error(request, 'La sesión ha expirado. Por favor, regístrate de nuevo.')
+            return redirect('core:registro')
+
+        if codigo_introducido != codigo_correcto:
+            messages.error(request, 'Código incorrecto. Inténtalo de nuevo.')
+            return render(request, self.template_name)
+
+        user = Usuario.objects.create_user(
+            username=datos['username'],
+            first_name=datos['first_name'],
+            last_name=datos['last_name'],
+            email=datos['email'],
+            password=datos['password'],
+        )
+        user_group, _ = Group.objects.get_or_create(name='Usuario')
         user.groups.add(user_group)
-        login(self.request, user)
-        return super().form_valid(form)
+
+        del request.session['registro_pendiente']
+        del request.session['codigo_verificacion']
+
+        login(request, user)
+        messages.success(request, '¡Cuenta verificada y creada correctamente!')
+        return redirect('core:home')
 
 class ProfileView(DetailView):
     model = Perfil
@@ -363,7 +429,7 @@ def change_preference(request):
 
 
 
-class StatisticsView(TemplateView):
+class StatisticsView(ModeradorOAdminMixin, TemplateView):
     template_name = 'core/statistics.html'
 
     def get_context_data(self, **kwargs):
@@ -391,7 +457,7 @@ class StatisticsView(TemplateView):
         return context
 
 
-class DealsCreateView(CreateView):
+class DealsCreateView(LoginRequiredMixin, CreateView):
     model = Acuerdo
     form_class = DealsPost
     template_name = 'core/dealsCreate.html'
@@ -415,6 +481,7 @@ class DealsCreateView(CreateView):
         acuerdo.usuario_a = self.get_usuario_a()
         acuerdo.usuario_b = self.request.user
         acuerdo.habilidad_tradea_a = self.get_publicacion().habilidad
+        acuerdo.publicacion = self.get_publicacion()  # ← añadir esto
         try:
             acuerdo.save()
         except IntegrityError:
@@ -433,7 +500,7 @@ class DealsCreateView(CreateView):
 
 
 
-class DealsUpdateAccepView(View):
+class DealsUpdateAccepView(LoginRequiredMixin,AcuerdoUpdateParticipant ,View):
     def post(self, request, pk):
         acuerdo = get_object_or_404(Acuerdo, pk=pk)
         if request.user == acuerdo.usuario_b:
@@ -443,20 +510,20 @@ class DealsUpdateAccepView(View):
         acuerdo.save()
         return redirect('core:deals')
 
-class DealsUpdateCancelView(View):
+class DealsUpdateCancelView(LoginRequiredMixin,AcuerdoUpdateParticipant ,View):
     def post(self, request, pk):
         acuerdo = get_object_or_404(Acuerdo, pk=pk)
         acuerdo.estado = 'CANCELADO'
         acuerdo.save()
         return redirect('core:deals')
 
-class DealsUpdateFinView(View):
+class DealsUpdateFinView(LoginRequiredMixin,AcuerdoUpdateParticipant ,View):
     def post(self, request, pk):
         acuerdo = get_object_or_404(Acuerdo, pk=pk)
         acuerdo.estado = 'FINALIZADO'
         acuerdo.save()
         return redirect('core:deals')
-class DealsUpdateStartView(View):
+class DealsUpdateStartView(LoginRequiredMixin,AcuerdoUpdateParticipant ,View):
     def post(self, request, pk):
         acuerdo = get_object_or_404(Acuerdo, pk=pk)
         acuerdo.estado = 'EN CURSO'
@@ -465,22 +532,23 @@ class DealsUpdateStartView(View):
 
 
 
-
-class DealsDeleteView(DeleteView):
-    pass
-
-
-class DealsDetailView(DetailView):
+class DealsDetailView(LoginRequiredMixin,AcuerdoUpdateParticipant ,DetailView):
     model = Acuerdo
+    context_object_name = 'deal'
     template_name = 'core/dealsDetail.html'
     success_url = reverse_lazy('core:deals')
 
+    def get_queryset(self):
+        return Acuerdo.objects.annotate(total_mins=F('semanas') * F('sesiones_por_semana') * F('mins_sesion'))
+
     def get_context_data(self, **kwargs):
-        context = super(DealsDetailView, self).get_context_data(**kwargs)
-        context['deal'] = Acuerdo.objects.annotate(total_mins=F('semanas') * F('sesiones_por_semana') * F('mins_sesion')).get(pk=self.kwargs['pk'])
+        context = super().get_context_data(**kwargs)
+        context['estado'] = 'Activa' if self.object.estado else 'Cerrada'
+        context['total_proposals'] = Acuerdo.objects.filter(usuario_a=self.object.usuario_a, estado='PROPUESTO').count()
         return context
 
-class DealsListView(ListView):
+
+class DealsListView(LoginRequiredMixin, ListView):
     model = Acuerdo
     context_object_name = 'deals'
     template_name = 'core/dealslist.html'
@@ -494,3 +562,157 @@ class DealsListView(ListView):
                 When(estado='CANCELADO', then=3),
                 When(estado='FINALIZADO', then=4),
                 default=5, output_field=IntegerField(),)).order_by('orden') # I do this because of annotate requirement, as I was going to do multiple queries and order them.
+
+
+class PostCreateview(LoginRequiredMixin,CreateView):
+    model = Publicacion
+    form_class = PostCreate
+    success_url = reverse_lazy('core:post')
+    template_name = 'core/postCreate.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['usuario'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.autor = self.request.user
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mis_habilidades'] = list(
+            self.request.user.perfil.habilidades.values_list('id', flat=True)
+        )
+        return context
+
+
+
+
+
+class PostUpdateView(LoginRequiredMixin,AutorOModeradorMixin, UpdateView):
+    model = Publicacion
+    form_class = PostCreate
+    context_object_name = 'post'
+    success_url = reverse_lazy('core:post')
+    template_name = 'core/post_update.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['usuario'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.autor = self.request.user
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mis_habilidades'] = list(
+            self.request.user.perfil.habilidades.values_list('id', flat=True)
+        )
+        return context
+
+class PostCloseView(LoginRequiredMixin,AutorOModeradorMixin,View):
+    def post(self, request, pk):
+        publicacion = get_object_or_404(Publicacion, pk=pk, autor=request.user)
+        publicacion.estado = False
+        publicacion.save()
+        return redirect('core:post')
+
+
+
+
+class SesionCreateView(CreateView):
+    model = Sesion
+    form_class = SesionCreateForm
+    template_name = 'core/sesionCreate.html'
+
+    def get_acuerdo(self):
+        return get_object_or_404(Acuerdo, pk=self.kwargs['pk'])
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['acuerdo'] = self.get_acuerdo()
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy('core:deals-detail', kwargs={'pk': self.kwargs['pk']})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['acuerdo'] = self.get_acuerdo()
+        return context
+
+    def form_valid(self, form):
+        acuerdo = self.get_acuerdo()
+        form.instance.acuerdo = acuerdo
+        response = super().form_valid(form)
+
+        meet_link = create_meet_link()
+        self.object.meet_link = meet_link
+        self.object.save(update_fields=['meet_link'])
+
+        return response
+
+class SesionDetailView(DetailView):
+    model = Sesion
+    template_name = 'core/sesion_detail.html'
+    success_url = reverse_lazy('core:sessions')
+    context_object_name = 'session'
+
+
+class SesionEditView(UpdateView):
+    model = Sesion
+    form_class = SesionEditForm
+    template_name = 'core/sesion_edit.html'
+    context_object_name = 'session'
+
+    def get_success_url(self):
+        return reverse_lazy('core:session-detail', kwargs={'pk': self.object.pk})
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        sesion = self.get_object()
+        kwargs.update({
+            'user_a': sesion.acuerdo.usuario_a,
+            'user_b': sesion.acuerdo.usuario_b,
+        })
+        return kwargs
+
+
+
+
+
+class SesionLisView(ListView):
+    model = Sesion
+    context_object_name = 'sessions'
+    template_name = 'core/sesioneslist.html'
+
+    def get_queryset(self):
+        return Sesion.objects.filter(
+            Q(acuerdo__usuario_a=self.request.user) | Q(acuerdo__usuario_b=self.request.user)
+        )
+
+
+
+
+class UsuarioViewSet(viewsets.ModelViewSet):
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
+    permission_classes = [IsAdminUser]
+
+class PublicacionViewSet(viewsets.ModelViewSet):
+    queryset = Publicacion.objects.all()
+    serializer_class = PublicacionSerializer
+    permission_classes = [IsAdminUser]
+
+class AcuerdoViewSet(viewsets.ModelViewSet):
+    queryset = Acuerdo.objects.all()
+    serializer_class = AcuerdoSerializer
+    permission_classes = [IsAdminUser]
+
+class SesionViewSet(viewsets.ModelViewSet):
+    queryset = Sesion.objects.all()
+    serializer_class = SesionSerializer
+    permission_classes = [IsAdminUser]

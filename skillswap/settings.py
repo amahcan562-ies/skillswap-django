@@ -42,7 +42,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
+    'rest_framework',
+    'drf_spectacular',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SkillSwap API',
+    'DESCRIPTION': 'API para la plataforma SkillSwap',
+    'VERSION': '1.0.0',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -53,9 +65,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'core.middleware.anti_spam.SpamMiddleware', # Anti SPAM
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.anti_spam.SpamMiddleware',  # Anti SPAM
 ]
 
 ROOT_URLCONF = 'skillswap.urls'
@@ -145,3 +157,14 @@ AUTH_USER_MODEL= 'core.Usuario'
 
 LOGOUT_REDIRECT_URL='core:home'
 LOGIN_REDIRECT_URL = 'core:home'
+
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sskillswap@gmail.com'  # tu Gmail
+EMAIL_HOST_PASSWORD = 'wqdo mwkm balh kmha'  # la clave de 16 caracteres SIN espacios
+DEFAULT_FROM_EMAIL = 'sskillswap@gmail.com'
