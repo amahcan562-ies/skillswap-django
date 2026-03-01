@@ -64,13 +64,13 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['password1'].widget.attrs.update({
             'class':'form-control',
             'required':True,
-            'placeholder':'Introduce tu contraseña',
+            'placeholder': _('Introduce tu contraseña'),
         })
 
         self.fields['password2'].widget.attrs.update({
             'class': 'form-control',
             'required': True,
-            'placeholder': 'Introduce tu contraseña',
+            'placeholder': _('Repite tu contraseña'),
         })
 
     class Meta:
@@ -96,23 +96,23 @@ class CustomUserCreationForm(UserCreationForm):
         widgets = {
             'first_name': forms.TextInput(attrs={
                'class':'form-control',
-                'placeholder':'Introduce tu nombre',
+                'placeholder': _('Introduce tu nombre'),
                 'required': True,
             }),
             'last_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Introduce tu apellido',
+                'placeholder': _('Introduce tu apellido'),
                 'required': True,
             }),
             'username': forms.TextInput(attrs={
                 'class':'form-control',
-                'placeholder':'Introduce tu nombre de usuario',
+                'placeholder': _('Introduce tu nombre de usuario'),
                 'pattern':'^[a-zA-Z0-9_]+$',
                 'required':True,
             }),
             'email': forms.EmailInput(attrs={
                 'class':'form-control',
-                'placeholder':'Introduce tu correo electrónico',
+                'placeholder': _('Introduce tu correo electrónico'),
                 'required': True,
             }),
         }
@@ -145,7 +145,7 @@ class CustomUserCreationForm(UserCreationForm):
         email = self.cleaned_data['email']
         domain = email.split('@')[1]
         if domain in blocklist:
-            raise forms.ValidationError("This email is not valid")
+            raise forms.ValidationError(_("Este correo electrónico no es válido"))
         return email
 
 
@@ -240,13 +240,13 @@ class CustomloginForm(AuthenticationForm):
         self.fields['username'].widget.attrs.update({
             'class':'form-control',
             'required':True,
-            'placeholder':'Introduce tu nombre de usuario o correo',
+            'placeholder': _('Introduce tu nombre de usuario o correo'),
         })
 
         self.fields['password'].widget.attrs.update({
             'class': 'form-control',
             'required': True,
-            'placeholder': 'Introduce tu contraseña',
+            'placeholder': _('Introduce tu contraseña'),
         })
 
 
@@ -288,12 +288,12 @@ class CustomloginForm(AuthenticationForm):
             username = user.username
 
         except Usuario.DoesNotExist:
-            raise forms.ValidationError("Username/Email no registrado")
+            raise forms.ValidationError(_("Usuario/Email no registrado"))
 
         self.user_cache = authenticate(self.request, username=username, password=password)
 
         if self.user_cache is None:
-            raise forms.ValidationError("Incorrect Username/Email or password")
+            raise forms.ValidationError(_("Usuario/Email o contraseña incorrectos"))
 
         self.confirm_login_allowed(self.user_cache)
         return self.cleaned_data
@@ -369,7 +369,7 @@ class DealsPost(forms.ModelForm):
     if publicacion and publicacion.tipo == 'BUSCO':
       if self.instance.usuario_b and not self.instance.usuario_b.perfil.habilidades.filter(
               pk=publicacion.habilidad.pk).exists():
-        raise forms.ValidationError('No tienes la habilidad que busca este usuario.')
+        raise forms.ValidationError(_('No tienes la habilidad que busca este usuario.'))
     return cleaned_data
 
   class Meta:
@@ -380,7 +380,7 @@ class DealsPost(forms.ModelForm):
       'semanas': forms.NumberInput(attrs={'class': 'form-control', 'pattern': '^[0-9_]+$'}),
       'mins_sesion': forms.NumberInput(attrs={'class': 'form-control', 'pattern': '^[0-9_]+$'}),
       'sesiones_por_semana': forms.NumberInput(attrs={'class': 'form-control', 'pattern': '^[0-9_]+$'}),
-      'condiciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter your conditions'}),
+      'condiciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('Introduce las condiciones')}),
     }
 
 
@@ -416,7 +416,7 @@ class DealsPostUpdate(forms.ModelForm):
     if publicacion and publicacion.tipo == 'BUSCO':
       if self.instance.usuario_b and not self.instance.usuario_b.perfil.habilidades.filter(
               pk=publicacion.habilidad.pk).exists():
-        raise forms.ValidationError('No tienes la habilidad que busca este usuario.')
+        raise forms.ValidationError(_('No tienes la habilidad que busca este usuario.'))
     return cleaned_data
 
   class Meta:
@@ -427,7 +427,80 @@ class DealsPostUpdate(forms.ModelForm):
       'semanas': forms.NumberInput(attrs={'class': 'form-control', 'pattern': '^[0-9_]+$'}),
       'mins_sesion': forms.NumberInput(attrs={'class': 'form-control', 'pattern': '^[0-9_]+$'}),
       'sesiones_por_semana': forms.NumberInput(attrs={'class': 'form-control', 'pattern': '^[0-9_]+$'}),
-      'condiciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter your conditions'}),
+      'condiciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('Introduce las condiciones')}),
     }
 
 
+<<<<<<< HEAD
+=======
+
+
+
+class PostCreate(forms.ModelForm):
+    def __init__(self, *args, usuario=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.usuario = usuario
+        self.fields['tipo'].widget.attrs['class'] = 'form-select'
+        self.fields['tipo'].label = _('Tipo')
+        self.fields['habilidad'].widget.attrs['class'] = 'form-select'
+        self.fields['habilidad'].label = _('Habilidad')
+        self.fields['descripcion'].widget.attrs['class'] = 'form-control'
+        self.fields['descripcion'].label = _('Descripción')
+        # Por defecto muestra todas
+        self.fields['habilidad'].queryset = Habilidad.objects.all()
+
+    class Meta:
+        model = Publicacion
+        fields = ['tipo','descripcion','habilidad']
+        widgets = {'tipo': forms.Select(attrs={'class': 'form-control'}),
+                   'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
+                   'habilidad': forms.Select(attrs={'class': 'form-control'}),}
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        habilidad = cleaned_data.get('habilidad')
+        if tipo == 'OFREZCO' and self.usuario:
+            if not self.usuario.perfil.habilidades.filter(pk=habilidad.pk).exists():
+                raise forms.ValidationError(_('Solo puedes ofrecer habilidades que tienes en tu perfil.'))
+        return cleaned_data
+
+
+
+
+class SesionCreateForm(forms.ModelForm):
+    """Form para crear una sesión (solo datos de planificación)"""
+    def __init__(self, *args, acuerdo=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if acuerdo:
+            self.instance.acuerdo = acuerdo
+
+    class Meta:
+        model = Sesion
+        fields = ['fecha', 'hora', 'duracion_real']
+        widgets = {
+            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'hora': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'duracion_real': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+
+class SesionEditForm(forms.ModelForm):
+    """Form para editar una sesión después de que haya ocurrido"""
+
+    def __init__(self, *args, user_a=None, user_b=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user_a:
+            self.fields['asistencia_user_a'].label = f'¿Asistió {str(user_a)}?'
+        if user_b:
+            self.fields['asistencia_user_b'].label = f'¿Asistió {str(user_b)}?'
+
+    class Meta:
+        model = Sesion
+        fields = ['resumen', 'asistencia_user_a', 'asistencia_user_b']
+        widgets = {
+            'resumen': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'asistencia_user_a': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'asistencia_user_b': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+>>>>>>> 685cc4d (kfix: solved placeholders text not shown in cookie lang)

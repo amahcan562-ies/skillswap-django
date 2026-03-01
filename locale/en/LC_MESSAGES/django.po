@@ -22,6 +22,67 @@ msgstr "Username/Email"
 msgid "Contraseña"
 msgstr "Password"
 
+#: core/forms.py
+msgid "Introduce tu nombre de usuario o correo"
+msgstr "Enter your username or email"
+
+#: core/forms.py
+msgid "Introduce tu contraseña"
+msgstr "Enter your password"
+
+#: core/forms.py
+msgid "Repite tu contraseña"
+msgstr "Repeat your password"
+
+#: core/forms.py
+msgid "Introduce tu nombre"
+msgstr "Enter your first name"
+
+#: core/forms.py
+msgid "Introduce tu apellido"
+msgstr "Enter your last name"
+
+#: core/forms.py
+msgid "Introduce tu nombre de usuario"
+msgstr "Enter your username"
+
+#: core/forms.py
+msgid "Introduce tu correo electrónico"
+msgstr "Enter your email address"
+
+
+#: core/forms.py
+msgid "Habilidad"
+msgstr "Skill"
+
+#: core/forms.py
+msgid "Descripción"
+msgstr "Description"
+
+#: core/forms.py
+msgid "Usuario/Email no registrado"
+msgstr "Username/Email not registered"
+
+#: core/forms.py
+msgid "Usuario/Email o contraseña incorrectos"
+msgstr "Incorrect username/email or password"
+
+#: core/forms.py
+msgid "Este correo electrónico no es válido"
+msgstr "This email address is not valid"
+
+#: core/forms.py
+msgid "Solo puedes ofrecer habilidades que tienes en tu perfil."
+msgstr "You can only offer skills that are in your profile."
+
+#: core/forms.py
+msgid "No tienes la habilidad que busca este usuario."
+msgstr "You don't have the skill this user is looking for."
+
+#: core/forms.py
+msgid "Introduce las condiciones"
+msgstr "Enter the conditions"
+
 #: core/templates/core/DealsUpdate.html:3
 #: core/templates/core/dealsCreate.html:3 core/templates/core/dealslist.html:3
 #: core/templates/core/statistics.html:72 templates/base.html:51
@@ -442,6 +503,7 @@ msgid "Autor"
 msgstr "Author"
 
 #: core/templates/core/statistics.html:153
+#: core/forms.py
 msgid "Tipo"
 msgstr "Type"
 
