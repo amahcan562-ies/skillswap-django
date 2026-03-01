@@ -34,39 +34,9 @@ La plataforma permite a los usuarios:
 - Gestionar un perfil de usuario personalizable con habilidades, biografía, zona horaria y disponibilidad
 - Proponer, aceptar y gestionar acuerdos de intercambio de habilidades con ciclo de vida completo
 - Programar y realizar un seguimiento de las sesiones dentro de cada acuerdo
-- Mantener preferencias de tema (claro/oscuro) e idioma (ES/EN) mediante cookies (establecidas vía formularios POST)
+- Mantener preferencias de tema (claro/oscuro) mediante cookies (establecidas vía formularios POST)
 - Acceder a una API REST (restringida a administradores) para todos los recursos principales
 
-### 👥 Roles del equipo
-
-Este proyecto fue desarrollado de forma colaborativa con una clara separación de roles:
-
-**Capa de Datos y ORM** (*José Antonio Hernández Humanes — jherhum1702*)
-- Modelos, relaciones, restricciones y migraciones
-- Consultas ORM avanzadas usando objetos Q/F, anotaciones y agregaciones
-- Optimización de consultas con `select_related()` y `prefetch_related()`
-- Comando de gestión personalizado `populate_test_data` para poblar la base de datos
-- Vista de estadísticas con datos agregados para moderadores y administradores
-- Corrección de la plantilla base del perfil
-
-**Flujos y Seguridad** (*Fabián Domínguez Casado — fdomcas*)
-- Modelo `Usuario` personalizado extendiendo `AbstractUser`
-- Permisos basados en grupos (`Usuario`, `Moderador`) y mixins de control de acceso
-- Ciclo de vida completo de publicaciones: creación, edición, cierre y gestión de estado
-- Flujo de acuerdos: proponer, aceptar, iniciar, cancelar, finalizar
-- Creación y seguimiento de sesiones vinculadas a acuerdos
-- Lógica de validación de formularios (`PostCreate`, `DealsPost`, `SesionCreateForm`)
-- Login personalizado con soporte de nombre de usuario o correo electrónico
-
-**Infraestructura y Documentación** (*Andrés Mahindo Canalo — amahcan562-ies*)
-- Containerización con Docker y orquestación con `docker-compose.yml`
-- Configuración de PostgreSQL y gestión de variables de entorno
-- Preferencias de usuario basadas en cookies (tema, idioma) mediante `context_processors.py`
-- Persistencia de filtros de búsqueda en sesión mediante `SessionManager`
-- Middleware anti-spam (`SpamMiddleware`) que limita la creación de publicaciones a 3 por día
-- API REST con DRF (`djangorestframework`) y documentación automática con `drf-spectacular`
-- Integración de videollamadas con Jitsi Meet (servidor propio)
-- Documentación completa del proyecto y README
 
 ---
 
@@ -83,7 +53,6 @@ Este proyecto fue desarrollado de forma colaborativa con una clara separación d
 - 📅 **Sesiones** — Programa sesiones vinculadas a un acuerdo en curso con fecha y hora específicas; se genera automáticamente un enlace de videollamada Jitsi Meet al crear la sesión, que solo se activa durante la ventana temporal de la sesión; el resumen y la asistencia se rellenan después
 - 📊 **Panel de estadísticas** — Restringido a moderadores y administradores; métricas agregadas sobre publicaciones, acuerdos, sesiones y usuarios
 - 🎨 **Cambio de tema** — Alternancia entre modo claro/oscuro guardada en una cookie (validez de 1 año)
-- 🌍 **Cambio de idioma** — Alternancia ES/EN guardada en una cookie (validez de 1 año)
 - 🛡️ **Middleware anti-spam** — Bloquea más de 3 creaciones de publicaciones por usuario en 24 horas
 - 🔌 **API REST** — Endpoints CRUD completos para `Usuario`, `Publicacion`, `Acuerdo` y `Sesion`; restringidos a administradores; documentados automáticamente con Swagger UI en `/api/docs/`
 
@@ -347,10 +316,9 @@ Tras ejecutar `populate_test_data`, hay **20 usuarios de prueba** disponibles. T
 - Una vez finalizada la sesión, cualquier participante puede rellenar el **resumen y la asistencia** mediante el formulario de edición
 - Todas tus sesiones aparecen listadas en `/sessions/`
 
-#### Tema e idioma
+#### Tema
 - Usa el botón **☀️/🌙** en la barra de navegación para alternar entre modo claro y oscuro
-- Usa el botón **EN/ES** para cambiar el idioma de la interfaz
-- Ambas preferencias se guardan en cookies con validez de 1 año
+- La preferencia de tema se guarda en una cookie con validez de 1 año
 
 #### Estadísticas (Moderadores / Administradores)
 - Visita `/statistics/` — solo accesible para staff y usuarios del grupo `Moderador`
@@ -396,7 +364,7 @@ skillswap-django/
 │   │   └── statistics.html         # Panel de estadísticas para administradores/moderadores
 │   ├── admin.py                    # Admin de Django (acciones de ban/desban)
 │   ├── apps.py
-│   ├── context_processors.py       # Lee cookies de tema/idioma → contexto de plantilla
+│   ├── context_processors.py       # Lee cookie de tema → contexto de plantilla
 │   ├── forms.py                    # Todos los formularios Django con lógica de validación
 │   ├── models.py                   # Habilidad, Usuario, Perfil, Publicacion, Acuerdo, Sesion
 │   ├── serializers.py              # Serializadores DRF
@@ -519,11 +487,11 @@ Cada Pull Request fue revisado contra esta lista de comprobación:
 
 **Ejemplo de mensaje de PR (feature/cookies):**
 ```
-feat(cookies): Modo oscuro y preferencias de idioma
+feat(cookies): Modo oscuro
 
-- Añadido context_processors.py — inyecta `theme` y `lang` en todas las plantillas
+- Añadido context_processors.py — inyecta `theme` en todas las plantillas
 - Cookie con max_age=365*24*60*60 (1 año)
-- Botones en navbar para ☀️/🌙 y EN/ES
+- Botón en navbar para ☀️/🌙
 - CSS del modo oscuro aplicado mediante clase del body
 
 Pruebas: migraciones aplicadas, tema persiste tras cerrar sesión, sin errores JS
@@ -633,7 +601,6 @@ Esta sección mapea cada requisito técnico al archivo exacto donde está implem
 | Requisito | Implementación | Archivo |
 |-----------|---------------|---------|
 | Preferencia de tema guardada en cookie | Vista `change_preference` — `response.set_cookie('theme', ...)` | `core/views.py` |
-| Preferencia de idioma guardada en cookie | Vista `change_preference` — `response.set_cookie('lang', ...)` | `core/views.py` |
 | Cookies inyectadas en todas las plantillas | Context processor `preferences()` | `core/context_processors.py` |
 | Filtros de búsqueda persistidos en sesión | `SessionManager.save_filters()` / `get_filters()` | `core/session_manager.py` |
 | Filtros restaurados en la siguiente visita | `HomeView.get_queryset()` — lee la sesión si no hay parámetro GET | `core/views.py` |

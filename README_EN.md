@@ -34,7 +34,7 @@ The platform enables users to:
 - Manage a customizable user profile with skills, bio, timezone, and availability
 - Propose, accept, and manage skill-exchange agreements through a full lifecycle
 - Schedule and track sessions within each agreement
-- Maintain theme (light/dark) and language (ES/EN) preferences via cookies (set via POST forms)
+- Maintain theme (light/dark) preference via cookie (set via POST form)
 - Access a REST API (admin-restricted) for all core resources
 
 ---
@@ -52,7 +52,6 @@ The platform enables users to:
 - 📅 **Sessions** — Schedule sessions linked to an ongoing agreement with a specific date and time; a Jitsi Meet video-call link is automatically generated on creation and becomes active only during the session window; summary and attendance are filled in afterwards
 - 📊 **Statistics Dashboard** — Restricted to moderators and admins; aggregated metrics on posts, agreements, sessions, and users
 - 🎨 **Theme Switching** — Light / Dark mode toggle stored in a cookie (1-year expiry)
-- 🌍 **Language Switching** — ES / EN toggle stored in a cookie (1-year expiry)
 - 🛡️ **Anti-Spam Middleware** — Blocks more than 3 post creations per user within 24 hours
 - 🔌 **REST API** — Full CRUD endpoints for `Usuario`, `Publicacion`, `Acuerdo`, and `Sesion`; restricted to admin users; auto-documented with Swagger UI at `/api/docs/`
 
@@ -265,7 +264,7 @@ Visit **http://localhost:8000**.
 | `skillswap/settings.py` | Main Django settings |
 | `skillswap/urls.py` | Project-level URL routing + API doc routes |
 | `core/urls.py` | App-level URL routing and DRF router |
-| `core/context_processors.py` | Cookie preferences injected into every template |
+| `core/context_processors.py` | Cookie theme preference injected into every template |
 | `core/session_manager.py` | Session-based search filter helpers |
 | `core/middleware/anti_spam.py` | Spam protection middleware |
 | `core/serializers.py` | DRF serializers for the REST API |
@@ -316,10 +315,9 @@ After running `populate_test_data`, **20 test users** are available. Every test 
 - Once the session has passed, either participant can fill in the **summary and attendance** via the edit form
 - All your sessions are listed at `/sessions/`
 
-#### Theme & Language
+#### Theme
 - Use the **☀️/🌙** toggle in the navbar to switch between light and dark mode
-- Use the **EN/ES** toggle to switch the interface language
-- Both preferences are stored in cookies and persist for 1 year
+- The theme preference is stored in a cookie and persists for 1 year
 
 #### Statistics (Moderators / Admins)
 - Visit `/statistics/` — only accessible to staff and users in the `Moderador` group
@@ -365,7 +363,7 @@ skillswap-django/
 │   │   └── statistics.html         # Admin/Moderator statistics dashboard
 │   ├── admin.py                    # Django admin (ban/unban actions)
 │   ├── apps.py
-│   ├── context_processors.py       # Reads theme/lang cookies → template context
+│   ├── context_processors.py       # Reads theme cookie → template context
 │   ├── forms.py                    # All Django forms with validation logic
 │   ├── models.py                   # Habilidad, Usuario, Perfil, Publicacion, Acuerdo, Sesion
 │   ├── serializers.py              # DRF serializers
@@ -418,7 +416,7 @@ All work was done in dedicated branches created from `develop` and merged back v
 **Features:**
 | Branch | Feature | Author | PR |
 |--------|---------|--------|----|
-| `feature/cookies` | Light/Dark theme & language preferences (cookies + context processor) | amahcan562-ies | #51 ✅ |
+| `feature/cookies` | Light/Dark theme preference (cookie + context processor) | amahcan562-ies | #51 ✅ |
 | `feature/post_list` | Post listing view and template | fdomcas | #50 ✅ |
 | `feature/populate_db` | Database population management command | jherhum1702 | #41 ✅ |
 | `feature/home-page` | Home page with smart search (Q objects) | jherhum1702 | #53 ✅ |
@@ -487,11 +485,11 @@ Each Pull Request was reviewed against this checklist:
 
 **Example PR message (feature/cookies):**
 ```
-feat(cookies): Dark mode and language preferences
+feat(cookies): Dark mode preference
 
-- Added context_processors.py — injects `theme` and `lang` into every template
+- Added context_processors.py — injects `theme` into every template
 - Cookie set with max_age=365*24*60*60 (1 year)
-- Navbar toggles for ☀️/🌙 and EN/ES
+- Navbar toggle for ☀️/🌙
 - Dark mode CSS applied via body class
 
 Testing: migrations apply, theme persists after logout, no JS errors
@@ -600,8 +598,7 @@ This section maps each technical requirement to the exact file(s) where it is im
 | Requirement | Implementation | File |
 |-------------|---------------|------|
 | Theme preference stored in cookie | `change_preference` view — `response.set_cookie('theme', ...)` | `core/views.py` |
-| Language preference stored in cookie | `change_preference` view — `response.set_cookie('lang', ...)` | `core/views.py` |
-| Cookies injected into all templates | `preferences()` context processor | `core/context_processors.py` |
+| Cookie injected into all templates | `preferences()` context processor | `core/context_processors.py` |
 | Search filters persisted in session | `SessionManager.save_filters()` / `get_filters()` | `core/session_manager.py` |
 | Filters restored on next visit | `HomeView.get_queryset()` — reads session if no GET param | `core/views.py` |
 | Filters cleared on demand | `clear_filters` view + `SessionManager.clear_filters()` | `core/views.py`, `core/session_manager.py` |
