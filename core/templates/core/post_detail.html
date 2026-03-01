@@ -4,7 +4,7 @@
 
 {% block content %}
 <a href="{% url 'core:post' %}" class="btn btn-outline-secondary mb-3">
-  <i class="fas fa-arrow-left me-1"></i>Volver
+  <i class="fas fa-arrow-left me-1"></i>{% trans "Volver" %}
 </a>
 <div class="card shadow-sm mx-auto" style="max-width: 700px;">
   <div class="card-body">
@@ -16,10 +16,10 @@
     <div class="d-flex align-items-center gap-3 text-muted small mb-3">
       <span><i class="fas fa-user me-1"></i>{{ post.autor }}</span>
       <span><i class="fas fa-calendar me-1"></i>{{ post.fecha_modificacion|date:"d M Y" }}</span>
-      {% if post.estado == "ACTIVO" %}
-        <span class="badge bg-success">{{ post.estado }}</span>
+      {% if post.estado %}
+        <span class="badge bg-success">{% trans "Activa" %}</span>
       {% else %}
-        <span class="badge bg-secondary">{{ post.estado }}</span>
+        <span class="badge bg-secondary">{% trans "Cerrada" %}</span>
       {% endif %}
     </div>
 
@@ -28,12 +28,12 @@
 
     <hr>
 
-    <h6 class="fw-semibold"><i class="fas fa-handshake me-1"></i>Propuestas recibidas</h6>
+    <h6 class="fw-semibold"><i class="fas fa-handshake me-1"></i>{% trans "Propuestas recibidas" %}</h6>
     <p class="small">
       {% if post.total_proposals > 0 %}
-        <span class="badge bg-primary">{{ post.total_proposals }}</span> Acuerdo{{ post.total_proposals|pluralize }} pendiente{{ post.total_proposals|pluralize }}
+        <span class="badge bg-primary">{{ post.total_proposals }}</span> {% blocktrans count counter=post.total_proposals %}Acuerdo pendiente{% plural %}Acuerdos pendientes{% endblocktrans %}
       {% else %}
-        <span class="text-muted fst-italic">Sin propuestas pendientes.</span>
+        <span class="text-muted fst-italic">{% trans "Sin propuestas pendientes." %}</span>
       {% endif %}
     </p>
 
@@ -46,9 +46,26 @@
     {% endif %}
 
     <hr>
-    <a href="{% url 'core:deals-create' %}?autor={{ post.autor.pk }}&post={{ post.pk }}" class="btn btn-primary">
-      <i class="fas fa-handshake me-1"></i>{% trans "Proponer acuerdo" %}
-    </a>
+    <div class="d-flex gap-2">
+      {% if request.user == post.autor %}
+        <a href="{% url 'core:post-update' post.pk %}" class="btn btn-outline-primary">
+          <i class="fas fa-pen me-1"></i>{% trans "Actualizar" %}
+        </a>
+      {% else %}
+        <a href="{% url 'core:deals-create' %}?autor={{ post.autor.pk }}&post={{ post.pk }}" class="btn btn-primary">
+          <i class="fas fa-handshake me-1"></i>{% trans "Proponer acuerdo" %}
+        </a>
+      {% endif %}
+
+      {% if request.user == post.autor and post.estado %}
+          <form method="post" action="{% url 'core:post-close' post.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger">
+              <i class="fas fa-times-circle me-1"></i>{% trans "Cerrar publicación" %}
+            </button>
+          </form>
+      {% endif %}
+    </div>
   </div>
 </div>
 {% endblock %}

@@ -3,8 +3,18 @@
 {% block title %}{% trans "Detalle Acuerdo" %}{% endblock %}
 
 {% block content %}
+<<<<<<< HEAD
 <a href="{% url 'core:deals' %}" class="btn btn-outline-secondary mb-3">
   <i class="fas fa-arrow-left me-1"></i>Volver
+=======
+<<<<<<< HEAD
+<a href="{% url 'core:sessions' %}?next={% url 'core:deals-detail' deal.pk %}" class="btn btn-primary">
+  <i class="fas fa-calendar-plus me-1"></i>Ver sesiones
+=======
+<a href="{% url 'core:deals' %}" class="btn btn-outline-secondary mb-3">
+  <i class="fas fa-arrow-left me-1"></i>{% trans "Volver" %}
+>>>>>>> 6a3374b (bugfix: add missing i18n translations to all templates)
+>>>>>>> cc65a4b (bugfix: add missing i18n translations to all templates)
 </a>
 <div class="card shadow-sm mx-auto">
   <div class="card-body">
@@ -52,7 +62,7 @@
         <span class="fw-bold">{{ deal.sesiones_por_semana }}</span>
       </div>
       <div class="col">
-        <small class="text-muted d-block">Total minutos</small>
+        <small class="text-muted d-block">{% trans "Total minutos" %}</small>
         <span class="fw-bold">{{ deal.total_mins }}</span>
       </div>
     </div>

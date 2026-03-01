@@ -1,18 +1,15 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# English translations for SkillSwap
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 20:22+0100\n"
+"POT-Creation-Date: 2026-03-01 16:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language-Team: English\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,7 +17,7 @@ msgstr ""
 
 #: core/templates/core/DealsUpdate.html:3
 #: core/templates/core/dealsCreate.html:3 core/templates/core/dealslist.html:3
-#: core/templates/core/statistics.html:72 templates/base.html:44
+#: core/templates/core/statistics.html:72 templates/base.html:51
 msgid "Acuerdos"
 msgstr "Agreements"
 
@@ -36,7 +33,7 @@ msgstr "Close"
 
 #: core/templates/core/DealsUpdate.html:37
 #: core/templates/core/dealsCreate.html:37
-#: core/templates/core/post_detail.html:38
+#: core/templates/core/post_detail.html:56
 msgid "Proponer acuerdo"
 msgstr "Propose Agreement"
 
@@ -47,9 +44,9 @@ msgstr "Send Proposal"
 
 #: core/templates/core/DealsUpdate.html:59
 #: core/templates/core/dealsCreate.html:59
-#: core/templates/core/dealsDetail.html:74
-#: core/templates/core/dealsDetail.html:84
-#: core/templates/core/dealsDetail.html:94
+#: core/templates/core/dealsDetail.html:77
+#: core/templates/core/dealsDetail.html:87
+#: core/templates/core/dealsDetail.html:97
 #: core/templates/core/profile_update.html:31
 msgid "Cancelar"
 msgstr "Cancel"
@@ -58,85 +55,149 @@ msgstr "Cancel"
 msgid "Detalle Acuerdo"
 msgstr "Agreement Details"
 
-#: core/templates/core/dealsDetail.html:31
+#: core/templates/core/dealsDetail.html:7
+#: core/templates/core/post_detail.html:7
+#: core/templates/core/search_results.html:29
+#: core/templates/core/sesion_detail.html:10
+#: core/templates/core/sesioneslist.html:7
+msgid "Volver"
+msgstr "Back"
+
+#: core/templates/core/dealsDetail.html:33
 msgid "Das:"
 msgstr "You give:"
 
-#: core/templates/core/dealsDetail.html:32
+#: core/templates/core/dealsDetail.html:34
 msgid "Recibes:"
 msgstr "You receive:"
 
-#: core/templates/core/dealsDetail.html:40
+#: core/templates/core/dealsDetail.html:42
 msgid "Semanas"
 msgstr "Weeks"
 
-#: core/templates/core/dealsDetail.html:44
+#: core/templates/core/dealsDetail.html:46
 msgid "Min/sesión"
 msgstr "Min/session"
 
-#: core/templates/core/dealsDetail.html:48
+#: core/templates/core/dealsDetail.html:50
 msgid "Sesiones/semana"
 msgstr "Sessions/week"
 
-#: core/templates/core/dealsDetail.html:56
+#: core/templates/core/dealsDetail.html:54
+msgid "Total minutos"
+msgstr "Total Minutes"
+
+#: core/templates/core/dealsDetail.html:61
 msgid "Condiciones"
 msgstr "Conditions"
 
-#: core/templates/core/dealsDetail.html:69
+#: core/templates/core/dealsDetail.html:72
 msgid "Aceptar"
 msgstr "Accept"
 
-#: core/templates/core/dealsDetail.html:80
+#: core/templates/core/dealsDetail.html:83
 msgid "Iniciar"
 msgstr "Start"
 
-#: core/templates/core/dealsDetail.html:90
+#: core/templates/core/dealsDetail.html:93
 msgid "Finalizar"
 msgstr "Finish"
 
-#: core/templates/core/dealsDetail.html:98
+#: core/templates/core/dealsDetail.html:100
+msgid "Añadir sesión"
+msgstr "Add Session"
+
+#: core/templates/core/dealsDetail.html:103
+msgid "Ver sesiones"
+msgstr "View Sessions"
+
+#: core/templates/core/dealsDetail.html:107
 msgid "Este acuerdo ya no puede modificarse."
 msgstr "This agreement can no longer be modified."
 
-#: core/templates/core/dealslist.html:46
+#: core/templates/core/dealslist.html:47
 msgid "semana"
 msgid_plural "semanas"
 msgstr[0] "week"
 msgstr[1] "weeks"
 
-#: core/templates/core/home.html:14 core/templates/core/search_results.html:16
+#: core/templates/core/home.html:14 core/templates/core/search_results.html:17
 msgid "Buscar habilidades..."
 msgstr "Search skills..."
+
+#: core/templates/core/postCreate.html:3
+msgid "Crear publicación"
+msgstr "Create Publication"
+
+#: core/templates/core/postCreate.html:8
+msgid "Nueva publicación"
+msgstr "New Publication"
+
 
 #: core/templates/core/post_detail.html:3
 msgid "Detalle"
 msgstr "Details"
 
-#: core/templates/core/post_detail.html:29 core/templates/core/profile.html:39
+#: core/templates/core/post_detail.html:20
+msgid "Activa"
+msgstr "Active"
+
+#: core/templates/core/post_detail.html:22
+msgid "Cerrada"
+msgstr "Closed"
+
+#: core/templates/core/post_detail.html:31
+msgid "Propuestas recibidas"
+msgstr "Received Proposals"
+
+#: core/templates/core/post_detail.html:34
+msgid "Acuerdo pendiente"
+msgid_plural "Acuerdos pendientes"
+msgstr[0] "Pending Agreement"
+msgstr[1] "Pending Agreements"
+
+#: core/templates/core/post_detail.html:36
+msgid "Sin propuestas pendientes."
+msgstr "No pending proposals."
+
+#: core/templates/core/post_detail.html:41 core/templates/core/profile.html:39
 msgid "Disponibilidad"
 msgstr "Availability"
 
-#: core/templates/core/post_detail.html:31
+#: core/templates/core/post_detail.html:43
 msgid "El usuario no tiene preferencias de disponibilidad."
 msgstr "The user has no availability preferences."
+
+#: core/templates/core/post_detail.html:52
+msgid "Actualizar"
+msgstr "Update"
+
+#: core/templates/core/post_detail.html:64
+msgid "Cerrar publicación"
+msgstr "Close Publication"
 
 #: core/templates/core/post_list.html:3
 msgid "Publicaciones"
 msgstr "Publications"
 
-#: core/templates/core/post_list.html:17
-#: core/templates/core/search_results.html:41
+#: core/templates/core/post_list.html:25
+#: core/templates/core/search_results.html:42
 #: core/templates/core/statistics.html:143
 #: core/templates/core/statistics.html:166
 msgid "Busco"
 msgstr "Looking for"
 
-#: core/templates/core/post_list.html:21
-#: core/templates/core/search_results.html:45
+#: core/templates/core/post_list.html:29
+#: core/templates/core/search_results.html:46
 #: core/templates/core/statistics.html:142
 #: core/templates/core/statistics.html:164
 msgid "Ofrezco"
 msgstr "I Offer"
+
+#: core/templates/core/post_update.html:3
+#: core/templates/core/post_update.html:9
+msgid "Actualizar publicación"
+msgstr "Update Publication"
 
 #: core/templates/core/profile.html:3
 msgid "Perfil"
@@ -174,26 +235,77 @@ msgstr "Edit Profile"
 msgid "Guardar cambios"
 msgstr "Save Changes"
 
-#: core/templates/core/search_results.html:3
+#: core/templates/core/search_results.html:4
 msgid "Resultados"
 msgstr "Results"
 
-#: core/templates/core/search_results.html:28
-msgid "Volver"
-msgstr "Back"
-
-#: core/templates/core/search_results.html:63
+#: core/templates/core/search_results.html:64
 #, python-format
 msgid "No se encontraron publicaciones para \"%(request.GET.q)s\""
 msgstr "No publications found for \"%(request.GET.q)s\""
 
-#: core/templates/core/search_results.html:64
+#: core/templates/core/search_results.html:65
 msgid "Prueba buscando otra skill"
 msgstr "Try searching for another skill"
 
-#: core/templates/core/search_results.html:67
+#: core/templates/core/search_results.html:68
 msgid "Volver al inicio"
 msgstr "Back to Home"
+
+#: core/templates/core/sesionCreate.html:3
+#: core/templates/core/sesionCreate.html:9
+msgid "Nueva sesión"
+msgstr "New Session"
+
+#: core/templates/core/sesionCreate.html:10
+msgid "Acuerdo"
+msgstr "Agreement"
+
+#: core/templates/core/sesion_detail.html:3
+#: core/templates/core/sesion_detail.html:8
+msgid "Detalle de la sesión"
+msgstr "Session Details"
+
+#: core/templates/core/sesion_detail.html:18
+#: core/templates/core/sesioneslist.html:19
+msgid "Fecha"
+msgstr "Date"
+
+#: core/templates/core/sesion_detail.html:23
+msgid "Duración real"
+msgstr "Actual Duration"
+
+#: core/templates/core/sesion_detail.html:28
+msgid "Resumen"
+msgstr "Summary"
+
+#: core/templates/core/sesion_detail.html:34
+msgid "Asistencia usuario A"
+msgstr "User A Attendance"
+
+#: core/templates/core/sesion_detail.html:36
+#: core/templates/core/sesion_detail.html:45
+msgid "Asistió"
+msgstr "Attended"
+
+#: core/templates/core/sesion_detail.html:38
+#: core/templates/core/sesion_detail.html:47
+msgid "No asistió"
+msgstr "Did Not Attend"
+
+#: core/templates/core/sesion_detail.html:43
+msgid "Asistencia usuario B"
+msgstr "User B Attendance"
+
+#: core/templates/core/sesioneslist.html:3
+#: core/templates/core/sesioneslist.html:10
+#: core/templates/core/statistics.html:110
+msgid "Sesiones"
+msgstr "Sessions"
+
+#: core/templates/core/sesioneslist.html:21
+msgid "Duración"
+msgstr "Duration"
 
 #: core/templates/core/statistics.html:4
 msgid "Dashboard"
@@ -248,10 +360,6 @@ msgstr "Completed"
 #: core/templates/core/statistics.html:97
 msgid "Cancelados"
 msgstr "Cancelled"
-
-#: core/templates/core/statistics.html:110
-msgid "Sesiones"
-msgstr "Sessions"
 
 #: core/templates/core/statistics.html:119
 msgid "Activas"
@@ -352,31 +460,31 @@ msgstr "No"
 msgid "No hay moderadores registrados."
 msgstr "No moderators registered."
 
-#: templates/base.html:37
+#: templates/base.html:44
 msgid "Inicio"
 msgstr "Home"
 
-#: templates/base.html:40
+#: templates/base.html:47
 msgid "Posts"
 msgstr "Posts"
 
-#: templates/base.html:96
+#: templates/base.html:103
 msgid "Mi Perfil"
 msgstr "My Profile"
 
-#: templates/base.html:102
+#: templates/base.html:109
 msgid "Cerrar Sesión"
 msgstr "Log Out"
 
-#: templates/base.html:109
+#: templates/base.html:116
 msgid "Iniciar Sesión"
 msgstr "Sign In"
 
-#: templates/base.html:114 templates/registration/registration.html:16
+#: templates/base.html:121 templates/registration/registration.html:16
 msgid "Registrarse"
 msgstr "Sign Up"
 
-#: templates/base.html:147
+#: templates/base.html:157
 msgid "Todos los derechos reservados para el grupo 4 (José, Andrés y Fabián)"
 msgstr "All rights reserved for group 4 (José, Andrés and Fabián)"
 
