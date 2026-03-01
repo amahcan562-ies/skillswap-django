@@ -22,4 +22,15 @@ urlpatterns = [
     path('deals/<int:pk>/fin/', DealsUpdateFinView.as_view(), name='deals-fin'),
     path('deals/<int:pk>/',DealsDetailView.as_view(), name='deals-detail'),
     path('deals/<int:pk>/start/', DealsUpdateStartView.as_view(), name='deals-start'),
+<<<<<<< HEAD
+=======
+    path('posts/create/', PostCreateview.as_view(), name='post-create'),
+    path('posts/<int:pk>/edit/', PostUpdateView.as_view(), name='post-update'),
+    path('posts/<int:pk>/close/', PostCloseView.as_view(), name='post-close'),
+    path('deals/<int:pk>/sessions/create/', SesionCreateView.as_view(), name='session-create'),
+    path('sessions/<int:pk>/', SesionDetailView.as_view(), name='session-detail'),
+    path('sessions/', SesionLisView.as_view(), name='sessions'),
+    path('api/', include(router.urls)),
+    path('sessions/<int:pk>/edit/', SesionEditView.as_view(), name='session-edit'),
+>>>>>>> 7fa416d (fix: names were shown in english with spanish cookies)
 ]

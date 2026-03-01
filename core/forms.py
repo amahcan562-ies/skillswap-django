@@ -3,6 +3,7 @@ import email
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django import forms
 from django.contrib.auth import authenticate
+from django.utils.translation import gettext_lazy as _
 from .models import *
 from disposable_email_domains import blocklist
 
@@ -63,13 +64,13 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['password1'].widget.attrs.update({
             'class':'form-control',
             'required':True,
-            'placeholder':'Enter your Password',
+            'placeholder':'Introduce tu contraseña',
         })
 
         self.fields['password2'].widget.attrs.update({
             'class': 'form-control',
             'required': True,
-            'placeholder': 'Enter your Password',
+            'placeholder': 'Introduce tu contraseña',
         })
 
     class Meta:
@@ -95,23 +96,23 @@ class CustomUserCreationForm(UserCreationForm):
         widgets = {
             'first_name': forms.TextInput(attrs={
                'class':'form-control',
-                'placeholder':'Enter your first name',
+                'placeholder':'Introduce tu nombre',
                 'required': True,
             }),
             'last_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter your first name',
+                'placeholder': 'Introduce tu apellido',
                 'required': True,
             }),
             'username': forms.TextInput(attrs={
                 'class':'form-control',
-                'placeholder':'Enter your username',
+                'placeholder':'Introduce tu nombre de usuario',
                 'pattern':'^[a-zA-Z0-9_]+$',
                 'required':True,
             }),
             'email': forms.EmailInput(attrs={
                 'class':'form-control',
-                'placeholder':'Enter your email address',
+                'placeholder':'Introduce tu correo electrónico',
                 'required': True,
             }),
         }
@@ -216,6 +217,8 @@ class CustomloginForm(AuthenticationForm):
         ...     user = form.get_user()
     """
 
+    username = forms.CharField(label=_("Usuario/Correo"))
+    password = forms.CharField(label=_("Contraseña"), widget=forms.PasswordInput, required=True)
 
     def __init__(self, *args, **kwargs):
         """
@@ -231,24 +234,21 @@ class CustomloginForm(AuthenticationForm):
         Example:
             >>> form = CustomloginForm()
             >>> form.fields['username'].widget.attrs['placeholder']
-            'Enter the alias or email'
+            'Introduce tu nombre de usuario o correo'
         """
         super().__init__(*args, **kwargs)
         self.fields['username'].widget.attrs.update({
             'class':'form-control',
             'required':True,
-            'placeholder':'Enter the usernmae or email',
+            'placeholder':'Introduce tu nombre de usuario o correo',
         })
 
         self.fields['password'].widget.attrs.update({
             'class': 'form-control',
             'required': True,
-            'placeholder': 'Enter your Password',
+            'placeholder': 'Introduce tu contraseña',
         })
 
-
-    username = forms.CharField(label="Username/Email")
-    password = forms.CharField(label="Password", widget=forms.PasswordInput, required=True)
 
     def clean(self):
         """
