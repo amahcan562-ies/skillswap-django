@@ -237,7 +237,7 @@ class CustomloginForm(AuthenticationForm):
         self.fields['username'].widget.attrs.update({
             'class':'form-control',
             'required':True,
-            'placeholder':'Enter the usernmae or email',
+            'placeholder':'Enter the username or email',
         })
 
         self.fields['password'].widget.attrs.update({
